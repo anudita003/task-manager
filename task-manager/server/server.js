@@ -9,24 +9,25 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-/* ================== DB CONNECT ================== */
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ DB Connected"))
-  .catch((err) => {
-    console.error("❌ DB Error:", err.message);
-    process.exit(1);
-  });
+/* ================== HEALTH CHECK (IMPORTANT FIRST) ================== */
+app.get("/", (req, res) => {
+  res.send("🚀 API Running");
+});
 
 /* ================== ROUTES ================== */
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/tasks", require("./routes/task"));
 app.use("/api/projects", require("./routes/project"));
 app.use("/api/stats", require("./routes/stats"));
-/* ================== HEALTH CHECK ================== */
-app.get("/", (req, res) => {
-  res.send("🚀 API Running");
-});
+
+/* ================== DB CONNECT ================== */
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ DB Connected"))
+  .catch((err) => {
+    console.error("❌ DB Error:", err.message);
+    // ❌ process.exit removed (IMPORTANT)
+  });
 
 /* ================== ERROR HANDLER ================== */
 app.use((err, req, res, next) => {
