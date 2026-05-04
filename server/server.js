@@ -17,6 +17,11 @@ app.get("/", (req, res) => {
   });
 });
 
+/* ================== DEBUG ROUTE (VERY IMPORTANT) ================== */
+app.get("/test", (req, res) => {
+  res.send("WORKING ✅");
+});
+
 /* ================== ROUTES ================== */
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/tasks", require("./routes/task"));
@@ -41,7 +46,7 @@ app.use((err, req, res, next) => {
 });
 
 /* ================== SERVER START ================== */
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080; // 🔥 Railway default
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
