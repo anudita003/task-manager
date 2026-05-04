@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   getTasks,
   createTask,
@@ -39,7 +39,8 @@ export default function Dashboard({ token }) {
 
   const role = localStorage.getItem("role") || "member";
 
-  const fetchAll = async () => {
+  // 🔥 FIX: useCallback added
+  const fetchAll = useCallback(async () => {
     try {
       const [t, s, u, p] = await Promise.all([
         getTasks(token),
@@ -57,11 +58,12 @@ export default function Dashboard({ token }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
+  // 🔥 FIX: dependency added
   useEffect(() => {
     fetchAll();
-  }, [token]);
+  }, [fetchAll]);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -132,7 +134,6 @@ export default function Dashboard({ token }) {
   return (
     <div className="dashboard">
 
-      {/* SIDEBAR */}
       <div className="sidebar">
         <div>
           <h2>Task Manager</h2>
@@ -141,12 +142,9 @@ export default function Dashboard({ token }) {
         <button onClick={handleLogout}>Logout</button>
       </div>
 
-      {/* MAIN */}
       <div className="main">
-
         <h2>Dashboard</h2>
 
-        {/* STATS */}
         <div className="stats">
           <div className="stat-card">Total: {stats.total || 0}</div>
           <div className="stat-card">Todo: {stats.todo || 0}</div>
@@ -154,7 +152,6 @@ export default function Dashboard({ token }) {
           <div className="stat-card">Overdue: {stats.overdue || 0}</div>
         </div>
 
-        {/* CHARTS */}
         <div style={{ display: "flex", gap: "30px", flexWrap: "wrap" }}>
           <div className="chart-box">
             <h4>Status Distribution</h4>
@@ -184,7 +181,6 @@ export default function Dashboard({ token }) {
           </div>
         </div>
 
-        {/* ADMIN */}
         {role === "admin" && (
           <>
             <div className="input-box">
@@ -231,7 +227,6 @@ export default function Dashboard({ token }) {
           </>
         )}
 
-        {/* BOARD */}
         <div className="board">
           {["todo", "inprogress", "done"].map((status) => (
             <div className="column" key={status}>
@@ -260,7 +255,6 @@ export default function Dashboard({ token }) {
                       <p>👤 {t.assignedTo?.name || "Unassigned"}</p>
                       <p>📁 {t.project?.name || "No Project"}</p>
 
-                      {/* 🔥 OVERDUE LABEL */}
                       {isOverdue && (
                         <p style={{ color: "red", fontWeight: "bold" }}>
                           ⚠️ Overdue
