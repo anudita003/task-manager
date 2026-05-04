@@ -6,34 +6,68 @@ const auth = require("../middleware/authMiddleware");
 // ================= CREATE TASK =================
 router.post("/", auth, async (req, res) => {
   try {
-    const { title, assignedTo, projectId, dueDate, priority } = req.body;
+    // 🔒 Only admin
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Only admin can create tasks" });
+    }
 
-    // 🔥 Check if project exists
-    const project = await Project.findById(projectId);
-    if (!project) return res.status(404).json("Project not found");
+    let { title, assignedTo, projectId, dueDate, priority } = req.body;
 
-    // 🔐 Member restriction: must be part of project
-    if (
-      req.user.role !== "admin" &&
-      !project.members.includes(req.user.id)
-    ) {
-      return res.status(403).json("Not part of this project");
+    // 🔥 Validation
+    if (!title) {
+      return res.status(400).json({ message: "Title required" });
+    }
+
+    // 🔥 FIX: priority lowercase
+    if (priority) {
+      priority = priority.toLowerCase();
+    }
+
+    let project = null;
+
+    // 🔥 Project validation
+    if (projectId) {
+      project = await Project.findById(projectId);
+
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // 🔥 FIX: safe ObjectId compare
+      if (assignedTo) {
+        const isMember = project.members
+          .map((m) => m.toString())
+          .includes(assignedTo.toString());
+
+        // 🔥 auto-add member to project
+        if (!isMember) {
+          project.members.push(assignedTo);
+          await project.save();
+        }
+      }
     }
 
     const task = await Task.create({
       title,
-      assignedTo,
-      project: projectId,
+      assignedTo: assignedTo || null,
+      project: projectId || null,
       dueDate,
-      priority,
+      priority: priority || "low",
       status: "todo",
     });
 
-    res.json(task);
+    const populatedTask = await Task.findById(task._id)
+      .populate("assignedTo", "name")
+      .populate("project", "name");
+
+    res.json(populatedTask);
+
   } catch (err) {
-    res.status(500).json("Error creating task");
+    console.log("CREATE TASK ERROR:", err);
+    res.status(500).json({ message: "Error creating task" });
   }
 });
+
 
 // ================= GET TASKS =================
 router.get("/", auth, async (req, res) => {
@@ -41,66 +75,80 @@ router.get("/", auth, async (req, res) => {
     let tasks;
 
     if (req.user.role === "admin") {
-      // Admin → all tasks
       tasks = await Task.find()
         .populate("assignedTo", "name")
         .populate("project", "name");
     } else {
-      // Member → only assigned tasks
       tasks = await Task.find({ assignedTo: req.user.id })
         .populate("assignedTo", "name")
         .populate("project", "name");
     }
 
-    res.json(tasks);
+    res.json(tasks || []);
+
   } catch (err) {
-    res.status(500).json("Error fetching tasks");
+    console.log("GET TASK ERROR:", err);
+    res.status(500).json({ message: "Error fetching tasks" });
   }
 });
+
 
 // ================= UPDATE STATUS =================
 router.put("/:id", auth, async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
 
-    if (!task) return res.status(404).json("Task not found");
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
 
-    // 🔐 Member can update only own task
+    // 🔐 Member restriction
     if (
       req.user.role !== "admin" &&
-      task.assignedTo.toString() !== req.user.id
+      task.assignedTo?.toString() !== req.user.id
     ) {
-      return res.status(403).json("Not allowed");
+      return res.status(403).json({ message: "Not allowed" });
     }
 
     task.status = req.body.status;
     await task.save();
 
-    res.json(task);
+    const updated = await Task.findById(task._id)
+      .populate("assignedTo", "name")
+      .populate("project", "name");
+
+    res.json(updated);
+
   } catch (err) {
-    res.status(500).json("Update error");
+    console.log("UPDATE TASK ERROR:", err);
+    res.status(500).json({ message: "Update error" });
   }
 });
+
 
 // ================= DELETE TASK =================
 router.delete("/:id", auth, async (req, res) => {
   try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Only admin can delete task" });
+    }
+
     const task = await Task.findById(req.params.id);
 
-    if (!task) return res.status(404).json("Task not found");
-
-    // 🔐 Only admin can delete
-    if (req.user.role !== "admin") {
-      return res.status(403).json("Only admin can delete task");
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
     }
 
     await task.deleteOne();
 
     res.json({ message: "Task deleted" });
+
   } catch (err) {
-    res.status(500).json("Delete error");
+    console.log("DELETE TASK ERROR:", err);
+    res.status(500).json({ message: "Delete error" });
   }
 });
+
 
 // ================= STATS =================
 router.get("/stats", auth, async (req, res) => {
@@ -110,10 +158,8 @@ router.get("/stats", auth, async (req, res) => {
     if (req.user.role === "admin") {
       tasks = await Task.find().populate("assignedTo", "name");
     } else {
-      tasks = await Task.find({ assignedTo: req.user.id }).populate(
-        "assignedTo",
-        "name"
-      );
+      tasks = await Task.find({ assignedTo: req.user.id })
+        .populate("assignedTo", "name");
     }
 
     const stats = {
@@ -128,7 +174,7 @@ router.get("/stats", auth, async (req, res) => {
       if (t.status === "todo") stats.todo++;
       if (t.status === "done") stats.done++;
 
-      // 🔥 Overdue logic
+      // overdue
       if (
         t.dueDate &&
         new Date(t.dueDate) < new Date() &&
@@ -139,16 +185,15 @@ router.get("/stats", auth, async (req, res) => {
 
       const userName = t.assignedTo?.name || "Unassigned";
 
-      if (!stats.perUser[userName]) {
-        stats.perUser[userName] = 0;
-      }
-
-      stats.perUser[userName]++;
+      stats.perUser[userName] =
+        (stats.perUser[userName] || 0) + 1;
     });
 
     res.json(stats);
+
   } catch (err) {
-    res.status(500).json("Stats error");
+    console.log("STATS ERROR:", err);
+    res.status(500).json({ message: "Stats error" });
   }
 });
 

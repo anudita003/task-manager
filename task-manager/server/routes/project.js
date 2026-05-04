@@ -2,24 +2,34 @@ const router = require("express").Router();
 const Project = require("../models/Project");
 const auth = require("../middleware/authMiddleware");
 
+
 // ================= CREATE PROJECT =================
 // ONLY ADMIN CAN CREATE
 router.post("/", auth, async (req, res) => {
   try {
     if (req.user.role !== "admin") {
-      return res.status(403).json("Only admin can create project");
+      return res.status(403).json({ message: "Only admin can create project" });
+    }
+
+    const { name } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ message: "Project name required" });
     }
 
     const project = await Project.create({
-      name: req.body.name,
+      name,
       createdBy: req.user.id,
-      members: [req.user.id], // admin is automatically member
+      members: [req.user.id], // ✅ admin auto member
     });
 
-    res.json(project);
+    const populatedProject = await Project.findById(project._id)
+      .populate("members", "name");
+
+    res.json(populatedProject); // ✅ IMPORTANT
   } catch (err) {
     console.log(err);
-    res.status(500).json("Error creating project");
+    res.status(500).json({ message: "Error creating project" });
   }
 });
 
@@ -32,16 +42,18 @@ router.get("/", auth, async (req, res) => {
     let projects;
 
     if (req.user.role === "admin") {
-      projects = await Project.find().populate("members", "name");
+      projects = await Project.find()
+        .populate("members", "name");
     } else {
       projects = await Project.find({
-        members: req.user.id,
+        members: req.user.id, // ✅ correct filter
       }).populate("members", "name");
     }
 
-    res.json(projects);
+    res.json(projects || []); // ✅ always array
   } catch (err) {
-    res.status(500).json("Error fetching projects");
+    console.log(err);
+    res.status(500).json({ message: "Error fetching projects" });
   }
 });
 
@@ -51,34 +63,42 @@ router.get("/", auth, async (req, res) => {
 router.put("/:id/add", auth, async (req, res) => {
   try {
     if (req.user.role !== "admin") {
-      return res.status(403).json("Only admin can add members");
+      return res.status(403).json({ message: "Only admin can add members" });
+    }
+
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ message: "UserId required" });
     }
 
     const project = await Project.findByIdAndUpdate(
       req.params.id,
-      { $addToSet: { members: req.body.userId } },
+      { $addToSet: { members: userId } },
       { new: true }
     ).populate("members", "name");
 
     res.json(project);
   } catch (err) {
-    res.status(500).json("Error adding member");
+    console.log(err);
+    res.status(500).json({ message: "Error adding member" });
   }
 });
 
 
-// ================= DELETE PROJECT (OPTIONAL BONUS) =================
-// ONLY ADMIN
+// ================= DELETE PROJECT =================
 router.delete("/:id", auth, async (req, res) => {
   try {
     if (req.user.role !== "admin") {
-      return res.status(403).json("Only admin can delete project");
+      return res.status(403).json({ message: "Only admin can delete project" });
     }
 
     await Project.findByIdAndDelete(req.params.id);
+
     res.json({ message: "Project deleted" });
   } catch (err) {
-    res.status(500).json("Error deleting project");
+    console.log(err);
+    res.status(500).json({ message: "Error deleting project" });
   }
 });
 
