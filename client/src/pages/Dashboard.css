@@ -1,0 +1,230 @@
+/* GLOBAL */
+body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  background: #f4f5f7;
+}
+
+/* LAYOUT */
+.dashboard {
+  display: flex;
+  height: 100vh;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 230px;
+  background: linear-gradient(180deg, #0747a6, #0052cc);
+  color: white;
+  padding: 25px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.sidebar h2 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.sidebar p {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.sidebar button {
+  background: white;
+  color: #0747a6;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.2s;
+}
+
+.sidebar button:hover {
+  background: #e6efff;
+}
+
+/* MAIN */
+.main {
+  flex: 1;
+  padding: 25px;
+  overflow-y: auto;
+}
+
+/* HEADER */
+.top-bar {
+  margin-bottom: 10px;
+}
+
+.top-bar h2 {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+/* STATS */
+.stats {
+  display: flex;
+  gap: 15px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  background: white;
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+  min-width: 120px;
+  text-align: center;
+  transition: 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+}
+
+/* 🔥 CHART CONTAINER FIX */
+.chart-container {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+/* CHART BOX */
+.chart-box {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 320px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+}
+
+/* INPUT */
+.input-box {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.input-box input,
+.input-box select {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #dfe1e6;
+  outline: none;
+  min-width: 150px;
+  font-size: 13px;
+}
+
+.input-box input:focus,
+.input-box select:focus {
+  border-color: #0052cc;
+}
+
+.input-box button {
+  background: #0052cc;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.input-box button:hover {
+  background: #003d99;
+}
+
+/* BOARD */
+.board {
+  display: flex;
+  gap: 15px;
+  overflow-x: auto;
+  margin-top: 10px;
+}
+
+/* COLUMN */
+.column {
+  flex: 1;
+  background: #ebecf0;
+  padding: 12px;
+  border-radius: 10px;
+  min-width: 250px;
+  min-height: 300px;
+}
+
+.column h3 {
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+/* TASK CARD */
+.task-card {
+  background: white;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+  transition: 0.2s;
+}
+
+.task-card:hover {
+  transform: scale(1.02);
+}
+
+.task-card h4 {
+  margin-bottom: 6px;
+  font-size: 15px;
+}
+
+.task-card p {
+  font-size: 13px;
+  color: #555;
+  margin: 2px 0;
+}
+
+/* OVERDUE TASK */
+.task-card.overdue {
+  border-left: 4px solid #ff5630;
+  background: #fff5f5;
+}
+
+/* BUTTON INSIDE TASK */
+.task-card button {
+  margin-top: 8px;
+  padding: 6px 10px;
+  background: #0052cc;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.task-card button:hover {
+  background: #003d99;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .dashboard {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .board {
+    flex-direction: column;
+  }
+}
