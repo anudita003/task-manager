@@ -1,10 +1,10 @@
 #  Task Manager
-## 🚀 Live Demo
-Frontend: https://your-vercel-link  
-Backend API: https://your-railway-link
+
+## 🌐 Live Demo
+🔹 Frontend: https://task-manager-lac-iota.vercel.app/
+🔹 Backend API: https://task-manager-production-fb7d.up.railway.app/
 
 ## 🖥️ Dashboard Preview
-
 ![Dashboard](./dashboard.png)
 
 ---
