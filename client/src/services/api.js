@@ -1,7 +1,7 @@
 // ================= CONFIG =================
 
 // Use deployed backend URL OR fallback to local
-const API = process.env.REACT_APP_API || "http://localhost:5000/api";
+const API = process.env.REACT_APP_API || "https://task-manager-production-fb7d.up.railway.app/api";
 
 // ================= COMMON REQUEST =================
 
