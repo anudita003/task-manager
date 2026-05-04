@@ -1,4 +1,4 @@
-# 🚀 Team Task Manager
+Task Manager
 
 ## 🖥️ Dashboard Preview
 
