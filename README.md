@@ -1,4 +1,7 @@
 #  Task Manager
+## 🚀 Live Demo
+Frontend: https://your-vercel-link  
+Backend API: https://your-railway-link
 
 ## 🖥️ Dashboard Preview
 
