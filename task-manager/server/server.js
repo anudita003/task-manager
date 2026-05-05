@@ -11,13 +11,13 @@ app.use(express.json());
 
 /* ================== HEALTH CHECK ================== */
 app.get("/", (req, res) => {
-  res.json({
+  res.status(200).json({
     status: "OK",
     message: "🚀 API Running",
   });
 });
 
-/* ================== DEBUG ROUTE (VERY IMPORTANT) ================== */
+/* ================== DEBUG ROUTE ================== */
 app.get("/test", (req, res) => {
   res.send("WORKING ✅");
 });
@@ -28,14 +28,6 @@ app.use("/api/tasks", require("./routes/task"));
 app.use("/api/projects", require("./routes/project"));
 app.use("/api/stats", require("./routes/stats"));
 
-/* ================== DB CONNECT ================== */
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ DB Connected"))
-  .catch((err) => {
-    console.error("❌ DB Error:", err.message);
-  });
-
 /* ================== ERROR HANDLER ================== */
 app.use((err, req, res, next) => {
   console.error("❌ SERVER ERROR:", err.stack);
@@ -45,9 +37,21 @@ app.use((err, req, res, next) => {
   });
 });
 
-/* ================== SERVER START ================== */
-const PORT = process.env.PORT || 8080; // 🔥 Railway default
+/* ================== DB + SERVER START ================== */
+const PORT = process.env.PORT || 8080;
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+const startServer = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("✅ DB Connected");
+
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  } catch (err) {
+    console.error("❌ DB Connection Failed:", err.message);
+    process.exit(1); // stop app if DB fails
+  }
+};
+
+startServer();
