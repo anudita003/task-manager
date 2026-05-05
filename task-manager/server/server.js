@@ -9,9 +9,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+/* ================== BASIC TEST ROUTE (VERY IMPORTANT) ================== */
+app.get("/ping", (req, res) => {
+  res.send("pong");
+});
+
 /* ================== HEALTH CHECK ================== */
 app.get("/", (req, res) => {
-  res.status(200).json({
+  res.json({
     status: "OK",
     message: "🚀 API Running",
   });
@@ -30,28 +35,27 @@ app.use("/api/stats", require("./routes/stats"));
 
 /* ================== ERROR HANDLER ================== */
 app.use((err, req, res, next) => {
-  console.error("❌ SERVER ERROR:", err.stack);
+  console.error("❌ SERVER ERROR:", err);
   res.status(500).json({
     message: "Something went wrong",
     error: err.message,
   });
 });
 
-/* ================== DB + SERVER START ================== */
+/* ================== START SERVER ================== */
 const PORT = process.env.PORT || 8080;
 
-const startServer = async () => {
-  try {
-    await mongoose.connect(process.env.MONGO_URI);
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
     console.log("✅ DB Connected");
 
-    app.listen(PORT, "0.0.0.0", () => {
+    // ❗ IMPORTANT: NO "0.0.0.0"
+    app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
-  } catch (err) {
-    console.error("❌ DB Connection Failed:", err.message);
-    process.exit(1); // stop app if DB fails
-  }
-};
-
-startServer();
+  })
+  .catch((err) => {
+    console.error("❌ DB ERROR:", err);
+    process.exit(1);
+  });
