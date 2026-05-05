@@ -1,7 +1,10 @@
+require("dotenv").config();  // 🔥 FIRST LINE
+
+console.log("ENV CHECK:", process.env.MONGO_URI);
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-require("dotenv").config();
 
 const app = express();
 
@@ -9,7 +12,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-/* ================== BASIC TEST ROUTE (VERY IMPORTANT) ================== */
+/* ================== BASIC TEST ROUTE ================== */
 app.get("/ping", (req, res) => {
   res.send("pong");
 });
@@ -50,7 +53,6 @@ mongoose
   .then(() => {
     console.log("✅ DB Connected");
 
-    // ❗ IMPORTANT: NO "0.0.0.0"
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
