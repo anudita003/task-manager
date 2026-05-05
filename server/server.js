@@ -9,6 +9,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+/* ================== BASIC TEST ROUTE (VERY IMPORTANT) ================== */
+app.get("/ping", (req, res) => {
+  res.send("pong");
+});
+
 /* ================== HEALTH CHECK ================== */
 app.get("/", (req, res) => {
   res.json({
@@ -17,7 +22,7 @@ app.get("/", (req, res) => {
   });
 });
 
-/* ================== DEBUG ROUTE (VERY IMPORTANT) ================== */
+/* ================== DEBUG ROUTE ================== */
 app.get("/test", (req, res) => {
   res.send("WORKING ✅");
 });
@@ -28,26 +33,29 @@ app.use("/api/tasks", require("./routes/task"));
 app.use("/api/projects", require("./routes/project"));
 app.use("/api/stats", require("./routes/stats"));
 
-/* ================== DB CONNECT ================== */
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ DB Connected"))
-  .catch((err) => {
-    console.error("❌ DB Error:", err.message);
-  });
-
 /* ================== ERROR HANDLER ================== */
 app.use((err, req, res, next) => {
-  console.error("❌ SERVER ERROR:", err.stack);
+  console.error("❌ SERVER ERROR:", err);
   res.status(500).json({
     message: "Something went wrong",
     error: err.message,
   });
 });
 
-/* ================== SERVER START ================== */
-const PORT = process.env.PORT || 8080; // 🔥 Railway default
+/* ================== START SERVER ================== */
+const PORT = process.env.PORT || 8080;
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log("✅ DB Connected");
+
+    // ❗ IMPORTANT: NO "0.0.0.0"
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("❌ DB ERROR:", err);
+    process.exit(1);
+  });
